@@ -37,6 +37,9 @@ class IndexCalcServiceImplementation final : public IndexCalc::Service
 			price += i;
 		}
 
+		// randomized the price to view differences in the output
+		price += std::rand();
+
 		reply->set_index_value(price);
 		return Status::OK;
 	}

@@ -1,6 +1,7 @@
 #include <grpcpp/grpcpp.h>
 #include <string>
 #include "bullseyeindexservice.grpc.pb.h"
+#include <csignal>
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -9,6 +10,11 @@ using grpc::Status;
 using bullseyeindexservice::IndexReply;
 using bullseyeindexservice::IndexRequest;
 using bullseyeindexservice::IndexCalc;
+
+namespace
+{
+	volatile std::sig_atomic_t sig_stop;
+}
 
 class IndexCalcClient {
 public:
@@ -61,11 +67,25 @@ void RunClient(int index_id)
 	std::cout << "Received: " << response << std::endl;
 }
 
+static void check_signal(int sig)
+{
+	if (sig == SIGINT || sig == SIGTERM) {
+		sig_stop = sig;
+	}
+}
+
 int main()
 {
 	int index_id;
 	std::cout << "Please enter the ID of the index: " << std::endl;
 	std::cin >> index_id;
 
-	RunClient(index_id);
+	sig_stop = 0;
+	std::signal(SIGINT, &check_signal);
+	std::signal(SIGTERM, &check_signal);
+
+	while (sig_stop == 0) {
+		RunClient(index_id);
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+	}
 }
