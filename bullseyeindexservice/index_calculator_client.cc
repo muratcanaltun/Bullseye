@@ -16,6 +16,8 @@ namespace
 	volatile std::sig_atomic_t sig_stop;
 }
 
+std::string calculating_index;
+
 class IndexCalcClient {
 public:
 	IndexCalcClient(std::shared_ptr<Channel> channel) : stub_(IndexCalc::NewStub(channel)) {}
@@ -62,9 +64,9 @@ void RunClient(int index_id)
 	std::chrono::duration<double, std::milli> time_spent = t2 - t1;
 
 	// print results
-	std::cout << "Calculated in " << time_spent.count() << " ms." << std::endl;
-	std::cout << "Fetched for ID: " << index_id << std::endl;
+	std::cout << "Fetched for index: " << calculating_index << std::endl;
 	std::cout << "Received: " << response << std::endl;
+	std::cout << "Calculated in " << time_spent.count() << " ms." << std::endl << std::endl;
 }
 
 static void check_signal(int sig)
@@ -77,12 +79,26 @@ static void check_signal(int sig)
 int main()
 {
 	int index_id;
-	std::cout << "Please enter the ID of the index: " << std::endl;
+	std::cout << "Welcome to Bullseye Index Service Mainframe.\nThe indices we currently calculate are:\n\n1. DJIA\n2. S&P 500\n" << std::endl;
+	std::cout << "Please enter the ID of the index you want calculated: " << std::endl;
 	std::cin >> index_id;
 
 	sig_stop = 0;
 	std::signal(SIGINT, &check_signal);
 	std::signal(SIGTERM, &check_signal);
+
+	switch (index_id)
+	{
+	case 1:
+		calculating_index = "DJIA";
+		break;
+	case 2:
+		calculating_index = "S&P 500";
+		break;
+	default:
+		calculating_index = "DJIA";
+		break;
+	}
 
 	while (sig_stop == 0) {
 		RunClient(index_id);

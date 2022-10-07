@@ -18,6 +18,17 @@ message(STATUS "Using gRPC ${gRPC_VERSION}")
 set(_GRPC_GRPCPP gRPC::grpc++)
 set(_GRPC_CPP_PLUGIN_EXECUTABLE $<TARGET_FILE:gRPC::grpc_cpp_plugin>)
 
+# curl
+set(CURL_LIBRARY "-lcurl") 
+find_package(CURL REQUIRED) 
+include_directories(${CURL_INCLUDE_DIR})
+if(LIBCURL_ENABLE)
+    target_link_libraries(app ${CURL_LIBRARIES})
+endif()
+
+# RapidJSON
+find_package(RapidJSON REQUIRED)
+
 # Proto file
 get_filename_component(hw_proto "bullseyeindexservice.proto" ABSOLUTE)
 get_filename_component(hw_proto_path "${hw_proto}" PATH)
@@ -49,5 +60,7 @@ foreach(_target
   target_link_libraries(${_target}
     ${_REFLECTION}
     ${_GRPC_GRPCPP}
-    ${_PROTOBUF_LIBPROTOBUF})
+    ${_PROTOBUF_LIBPROTOBUF}
+    ${CURL_LIBRARIES}
+    ${RAPIDJSON_INCLUDE_DIR})
 endforeach()

@@ -11,5 +11,5 @@ message IndexRequest {
 }
 
 message IndexReply {
-    int32 index_value = 1;
+    double index_value = 1;
 }
