@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package bullseyeindexsupervisor;
+
+service IndexCheck {
+    rpc sendRequest (IndexRequest) returns (IndexReply) {}
+}
+
+message IndexRequest {
+    string index_name = 1;
+}
+
+message IndexReply {
+    double index_value = 1;
+}
