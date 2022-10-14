@@ -70,7 +70,7 @@ void RunClient(std::string index_name)
 	std::cout << "Received: " << response << std::endl;
 	std::cout << "Difference (%): " << index_difference << std::endl << std::endl;
 
-	if (index_difference > 10) {
+	if (abs(index_difference) > 10) {
 		std::cout << "WARNING! PRICE DIFFERENCE OVER 10%!" << std::endl;
 	}
 
