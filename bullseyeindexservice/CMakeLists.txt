@@ -29,6 +29,12 @@ endif()
 # RapidJSON
 find_package(RapidJSON REQUIRED)
 
+# mongocxx
+find_package(libmongocxx REQUIRED)
+find_package(libbsoncxx REQUIRED)
+include_directories(${LIBMONGOCXX_INCLUDE_DIR})
+include_directories(${LIBBSONCXX_INCLUDE_DIR})
+
 # Proto file
 get_filename_component(hw_proto "bullseyeindexservice.proto" ABSOLUTE)
 get_filename_component(hw_proto_path "${hw_proto}" PATH)
@@ -62,5 +68,8 @@ foreach(_target
     ${_GRPC_GRPCPP}
     ${_PROTOBUF_LIBPROTOBUF}
     ${CURL_LIBRARIES}
-    ${RAPIDJSON_INCLUDE_DIR})
+    ${RAPIDJSON_INCLUDE_DIR}
+    ${LIBMONGOCXX_LIBRARIES}
+    ${LIBBSONCXX_LIBRARIES}
+  )
 endforeach()

@@ -1,7 +1,24 @@
-#include <grpcpp/grpcpp.h>
+#include <iostream>
 #include <string>
-#include "bullseyeindexservice.grpc.pb.h"
 #include <csignal>
+
+#include <grpcpp/grpcpp.h>
+#include "bullseyeindexservice.grpc.pb.h"
+#include <bsoncxx/json.hpp>
+#include <mongocxx/client.hpp>
+#include <mongocxx/stdx.hpp>
+#include <mongocxx/uri.hpp>
+#include <mongocxx/instance.hpp>
+#include <bsoncxx/builder/stream/helpers.hpp>
+#include <bsoncxx/builder/stream/document.hpp>
+#include <bsoncxx/builder/stream/array.hpp>
+
+using bsoncxx::builder::stream::close_array;
+using bsoncxx::builder::stream::close_document;
+using bsoncxx::builder::stream::document;
+using bsoncxx::builder::stream::finalize;
+using bsoncxx::builder::stream::open_array;
+using bsoncxx::builder::stream::open_document;
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -17,6 +34,11 @@ namespace
 }
 
 std::string calculating_index;
+
+mongocxx::instance instance{};
+mongocxx::client client{ mongocxx::uri{} };
+mongocxx::database db = client["Index"];
+mongocxx::collection coll = db["Index_Values"];
 
 class IndexCalcClient {
 public:
@@ -67,6 +89,9 @@ void RunClient(int index_id)
 	std::cout << "Fetched for index: " << calculating_index << std::endl;
 	std::cout << "Received: " << response << std::endl;
 	std::cout << "Calculated in " << time_spent.count() << " ms." << std::endl << std::endl;
+
+	auto builder = bsoncxx::builder::stream::document{};
+	coll.update_one(document{} << "Name" << calculating_index << finalize, document{} << "$set" << open_document << "Value" << response << close_document << finalize);
 }
 
 static void check_signal(int sig)
