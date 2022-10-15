@@ -18,8 +18,8 @@ namespace
 	volatile std::sig_atomic_t sig_stop;
 }
 
-double prev_vals[2];
-std::string checking_index;
+double prev_vals[2] = {1,1};
+std::string checking_index = "DJIA";
 double index_difference;
 int state = 1;
 
@@ -86,10 +86,6 @@ static void check_signal(int sig)
 
 int main()
 {
-	prev_vals[0] = 1;
-	prev_vals[1] = 1;
-	checking_index = "DJIA";
-
 	sig_stop = 0;
 	std::signal(SIGINT, &check_signal);
 	std::signal(SIGTERM, &check_signal);
