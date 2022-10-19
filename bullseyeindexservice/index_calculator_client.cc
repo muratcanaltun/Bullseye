@@ -39,6 +39,7 @@ mongocxx::instance instance{};
 mongocxx::client client{ mongocxx::uri{} };
 mongocxx::database db = client["Index"];
 mongocxx::collection coll = db["Index_Values"];
+mongocxx::collection hist_coll = db["Index_Hist"];
 
 class IndexCalcClient {
 public:
@@ -90,8 +91,14 @@ void RunClient(int index_id)
 	std::cout << "Received: " << response << std::endl;
 	std::cout << "Calculated in " << time_spent.count() << " ms." << std::endl << std::endl;
 
+	bsoncxx::types::b_date timestamp(std::chrono::system_clock::now());
+
 	auto builder = bsoncxx::builder::stream::document{};
-	coll.update_one(document{} << "Name" << calculating_index << finalize, document{} << "$set" << open_document << "Value" << response << close_document << finalize);
+	coll.update_one(document{} << "Name" << calculating_index << finalize, document{} << "$set" << open_document << "Value" << response
+		<< "Timestamp" << timestamp << close_document << finalize);
+
+	hist_coll.insert_one(document{} << "Name" << calculating_index << "Value" << response << "Timestamp" << timestamp << finalize);
+
 }
 
 static void check_signal(int sig)
