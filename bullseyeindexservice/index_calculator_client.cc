@@ -28,10 +28,7 @@ using bullseyeindexservice::IndexReply;
 using bullseyeindexservice::IndexRequest;
 using bullseyeindexservice::IndexCalc;
 
-namespace
-{
-	volatile std::sig_atomic_t sig_stop;
-}
+volatile std::sig_atomic_t sig_stop;
 
 std::string calculating_index;
 
@@ -45,7 +42,7 @@ class IndexCalcClient {
 public:
 	IndexCalcClient(std::shared_ptr<Channel> channel) : stub_(IndexCalc::NewStub(channel)) {}
 
-	std::string sendRequest(int index_id)
+	std::string sendRequest(std::string index_id)
 	{
 		IndexRequest request;
 		request.set_index_id(index_id);
@@ -64,14 +61,12 @@ public:
 			std::cout << "Error code " << status.error_code() << ": " << status.error_message() << std::endl;
 			return "RPC Failed";
 		}
-
-		// if statement
 	}
 private:
 	std::unique_ptr<IndexCalc::Stub> stub_;
 };
 
-void RunClient(int index_id) 
+void RunClient(std::string index_id) 
 {
 	// init IP adress, response str and client
 	std::string target_address("127.0.0.1:50051");
@@ -93,11 +88,15 @@ void RunClient(int index_id)
 
 	bsoncxx::types::b_date timestamp(std::chrono::system_clock::now());
 
-	auto builder = bsoncxx::builder::stream::document{};
+	if (response.compare("RPC Failed") != 0) {
+		auto builder = bsoncxx::builder::stream::document{};
 	coll.update_one(document{} << "Name" << calculating_index << finalize, document{} << "$set" << open_document << "Value" << response
 		<< "Timestamp" << timestamp << close_document << finalize);
 
 	hist_coll.insert_one(document{} << "Name" << calculating_index << "Value" << response << "Timestamp" << timestamp << finalize);
+	}
+
+	
 
 }
 
@@ -110,27 +109,23 @@ static void check_signal(int sig)
 
 int main()
 {
-	int index_id;
-	std::cout << "Welcome to Bullseye Index Service Mainframe.\nThe indices we currently calculate are:\n\n1. DJIA\n2. S&P 500\n" << std::endl;
-	std::cout << "Please enter the ID of the index you want calculated: " << std::endl;
-	std::cin >> index_id;
+	mongocxx::cursor list_cursor = coll.find({});
+
+	std::string index_id;
+	std::cout << "Welcome to Bullseye Index Service Mainframe.\nThe indices we currently calculate are:" << std::endl;
+
+	for (auto&& doc : list_cursor) {
+		bsoncxx::document::element name = doc["Name"];
+		std::cout << name.get_utf8().value << std::endl;
+	}
+
+	std::cout << "\nPlease enter the ID of the index you want calculated:" << std::endl;
+	std::getline(std::cin, index_id);
+	calculating_index = index_id;
 
 	sig_stop = 0;
 	std::signal(SIGINT, &check_signal);
 	std::signal(SIGTERM, &check_signal);
-
-	switch (index_id)
-	{
-	case 1:
-		calculating_index = "DJIA";
-		break;
-	case 2:
-		calculating_index = "S&P 500";
-		break;
-	default:
-		calculating_index = "DJIA";
-		break;
-	}
 
 	while (sig_stop == 0) {
 		RunClient(index_id);

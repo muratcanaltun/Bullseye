@@ -7,7 +7,7 @@ service IndexCalc {
 }
 
 message IndexRequest {
-    int32 index_id = 1;
+    string index_id = 1;
 }
 
 message IndexReply {
