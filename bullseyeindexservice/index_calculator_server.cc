@@ -1,5 +1,6 @@
 #include <grpcpp/grpcpp.h>
 #include <string>
+
 #include "bullseyeindexservice.grpc.pb.h"
 #include <curl/curl.h>
 #include <rapidjson/document.h>
@@ -11,6 +12,8 @@
 #include <bsoncxx/builder/stream/helpers.hpp>
 #include <bsoncxx/builder/stream/document.hpp>
 #include <bsoncxx/builder/stream/array.hpp>
+
+#define CURL_MAX_WRITE_SIZE 32768
 
 using bsoncxx::builder::stream::close_array;
 using bsoncxx::builder::stream::close_document;
