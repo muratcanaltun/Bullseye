@@ -1,9 +1,11 @@
 #include <grpcpp/grpcpp.h>
 #include <string>
+#include <sstream>
 
 #include "bullseyeindexservice.grpc.pb.h"
 #include <curl/curl.h>
 #include <rapidjson/document.h>
+#include <rapidjson/istreamwrapper.h>
 #include <bsoncxx/json.hpp>
 #include <mongocxx/client.hpp>
 #include <mongocxx/stdx.hpp>
@@ -74,7 +76,10 @@ class IndexCalcServiceImplementation final : public IndexCalc::Service
 		std::cout << "Fetched stock data for " << index_name << " in " << time_spent.count() << " ms." << std::endl;
 
 		rapidjson::Document doc;
-		doc.Parse<0>(stringify.c_str());
+		std::stringstream ss(stringify);
+		rapidjson::IStreamWrapper isw(ss);
+
+		doc.ParseStream<rapidjson::kParseStopWhenDoneFlag>(isw);
 
 		assert(doc.IsObject());
 
