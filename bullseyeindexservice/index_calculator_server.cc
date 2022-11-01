@@ -100,6 +100,15 @@ class IndexCalcServiceImplementation final : public IndexCalc::Service
 			else if (calculation_type.compare("Equal Weighted") == 0) {
 				price += p["regularMarketPrice"].GetDouble() * (1.0 / quoteResponse["result"].GetArray().Size());
 			}
+			else if (calculation_type.compare("Capped") == 0) {
+				double shares = p["sharesOutstanding"].GetDouble();
+
+				if (index_view["Limit"].get_double() < p["sharesOutstanding"].GetDouble()) {
+					shares = index_view["Limit"].get_double();
+				}
+
+				price += p["regularMarketPrice"].GetDouble() * shares;
+			}
 		}
 
 		price = price / index_divisor;
