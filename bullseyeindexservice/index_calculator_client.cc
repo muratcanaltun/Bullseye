@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <csignal>
+#include <vector>
+#include <algorithm>
 
 #include <grpcpp/grpcpp.h>
 #include "bullseyeindexservice.grpc.pb.h"
@@ -114,14 +116,20 @@ int main()
 	std::string index_id;
 	std::cout << "Welcome to Bullseye Index Service Mainframe.\nThe indices we currently calculate are:" << std::endl;
 
+	std::vector<std::string> indices;
 	for (auto&& doc : list_cursor) {
 		bsoncxx::document::element name = doc["Name"];
+		indices.push_back(name.get_utf8().value.to_string());
 		std::cout << name.get_utf8().value << std::endl;
 	}
 
-	std::cout << "\nPlease enter the ID of the index you want calculated:" << std::endl;
-	std::getline(std::cin, index_id);
-	calculating_index = index_id;
+	do
+	{
+		std::cout << "\nPlease enter the ID of the index you want calculated:" << std::endl;
+		std::getline(std::cin, index_id);
+		calculating_index = index_id;
+	} while (std::find(indices.begin(), indices.end(), calculating_index) == indices.end());
+	
 
 	sig_stop = 0;
 	std::signal(SIGINT, &check_signal);
