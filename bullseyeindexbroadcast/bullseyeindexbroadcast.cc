@@ -29,25 +29,27 @@ mongocxx::collection hist_coll = db["Index_Hist"];
 
 void handle_get(web::http::http_request request)
 {
-    std::cout << "Handling GET" << std::endl;
+    auto path = web::http::uri::split_path(web::http::uri::decode(request.relative_uri().path()));
+    std::string splitted(utility::conversions::to_utf8string(path[0]));
 
+    std::cout << "Handling GET " + splitted << std::endl;
     auto answer = web::json::value::object();
-    
-    mongocxx::cursor cursor = hist_coll.find({});
 
-    int count = 1;
+    mongocxx::cursor cursor = hist_coll.find(document{} << "Name" << splitted << finalize);
+
+    std::vector<web::json::value> values;
     for (auto doc : cursor) {
-        answer[utility::conversions::to_string_t(std::to_string(count))] = web::json::value::string(utility::conversions::to_string_t(bsoncxx::to_json(doc)));
-        count++;
+        values.push_back(web::json::value::string(utility::conversions::to_string_t(bsoncxx::to_json(doc))));
     }
+    answer[utility::conversions::to_string_t("response")] = web::json::value::array(values);
 
     request.reply(web::http::status_codes::OK, answer);
 }
 
 int main()
 {
-    web::http::experimental::listener::http_listener listener(L"http://localhost:8080/Indices");
-   
+    web::http::experimental::listener::http_listener listener(L"http://localhost:8080/Indices/");
+
     listener.support(web::http::methods::GET, handle_get);
 
     try
