@@ -3,7 +3,22 @@
 #include <csignal>
 
 #include <grpcpp/grpcpp.h>
+#include <bsoncxx/json.hpp>
+#include <mongocxx/client.hpp>
+#include <mongocxx/stdx.hpp>
+#include <mongocxx/uri.hpp>
+#include <mongocxx/instance.hpp>
+#include <bsoncxx/builder/stream/helpers.hpp>
+#include <bsoncxx/builder/stream/document.hpp>
+#include <bsoncxx/builder/stream/array.hpp>
 #include "bullseyeindexsupervisor.grpc.pb.h"
+
+using bsoncxx::builder::stream::close_array;
+using bsoncxx::builder::stream::close_document;
+using bsoncxx::builder::stream::document;
+using bsoncxx::builder::stream::finalize;
+using bsoncxx::builder::stream::open_array;
+using bsoncxx::builder::stream::open_document;
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -13,15 +28,21 @@ using bullseyeindexsupervisor::IndexReply;
 using bullseyeindexsupervisor::IndexRequest;
 using bullseyeindexsupervisor::IndexCheck;
 
+mongocxx::instance instance{};
+mongocxx::client client{ mongocxx::uri{} };
+mongocxx::database db = client["Index"];
+mongocxx::collection coll = db["Index_Values"];
+
 namespace
 {
 	volatile std::sig_atomic_t sig_stop;
 }
 
 double prev_vals[2] = {1,1};
-std::string checking_index = "DJIA";
+std::string checking_index = "S&P 500";
 double index_difference;
 int state = 1;
+bool first_time = true;
 
 class IndexCheckClient {
 public:
@@ -62,7 +83,7 @@ void RunClient(std::string index_name)
 
 	response = client.sendRequest(index_name);
 
-	int current_val = std::atof(response.c_str());
+	double current_val = std::stod(response.c_str());
 	index_difference = (current_val - prev_vals[state - 1]) / prev_vals[state - 1] * 100;
 
 	// print results
@@ -70,11 +91,12 @@ void RunClient(std::string index_name)
 	std::cout << "Received: " << response << std::endl;
 	std::cout << "Difference (%): " << index_difference << std::endl << std::endl;
 
-	if (abs(index_difference) > 10) {
+	if (abs(index_difference) > 10 && !first_time) {
 		std::cout << "WARNING! PRICE DIFFERENCE OVER 10%!" << std::endl;
 	}
 
 	prev_vals[state - 1] = current_val;
+	first_time = false;
 }
 
 static void check_signal(int sig)
@@ -90,19 +112,27 @@ int main()
 	std::signal(SIGINT, &check_signal);
 	std::signal(SIGTERM, &check_signal);
 
+	mongocxx::cursor list_cursor = coll.find({});
+
+	std::string index_id;
+	std::cout << "Welcome to Bullseye Index Supervisor Mainframe.\nThe indices you can oversee are:" << std::endl;
+
+	std::vector<std::string> indices;
+	for (auto&& doc : list_cursor) {
+		bsoncxx::document::element name = doc["Name"];
+		indices.push_back(name.get_utf8().value.to_string());
+		std::cout << name.get_utf8().value << std::endl;
+	}
+
+	do
+	{
+		std::cout << "\nPlease enter the ID of the index you want to oversee:" << std::endl;
+		std::getline(std::cin, index_id);
+		checking_index = index_id;
+	} while (std::find(indices.begin(), indices.end(), checking_index) == indices.end());
+
 	while (sig_stop == 0) {
 		RunClient(checking_index);
-		switch (state)
-		{
-		case 2:
-			checking_index = "DJIA";
-			state = 1;
-			break;
-		default:
-			checking_index = "S&P 500";
-			state = 2;
-			break;
-		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
 }
