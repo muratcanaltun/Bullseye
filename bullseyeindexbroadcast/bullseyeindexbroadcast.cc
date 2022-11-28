@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <chrono>
 
 #include <cpprest/http_listener.h>
 #include <cpprest/json.h>
@@ -39,7 +40,17 @@ void handle_get(web::http::http_request request)
 
     std::vector<web::json::value> values;
     for (auto doc : cursor) {
-        values.push_back(web::json::value::string(utility::conversions::to_string_t(bsoncxx::to_json(doc))));
+        web::json::value object = web::json::value::object();
+
+        object[utility::conversions::to_string_t("Name")] = web::json::value::string(utility::conversions::to_string_t(doc["Name"].get_utf8().value.to_string()));
+        object[utility::conversions::to_string_t("Value")] = web::json::value::number(std::stod(doc["Value"].get_utf8().value.to_string()));
+        object[utility::conversions::to_string_t("Timestamp")] = web::json::value::number((doc["Timestamp"].get_date().value.count()));
+
+        std::string document = "{Name: " + doc["Name"].get_utf8().value.to_string() +
+            ", Value: " + doc["Value"].get_utf8().value.to_string() +
+            ", Timestamp: " + std::to_string(doc["Timestamp"].get_date().value.count()) + " }";
+            
+        values.push_back(object);
     }
     answer[utility::conversions::to_string_t("response")] = web::json::value::array(values);
 
