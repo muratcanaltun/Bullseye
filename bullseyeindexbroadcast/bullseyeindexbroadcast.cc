@@ -30,6 +30,11 @@ mongocxx::collection hist_coll = db["Index_Hist"];
 
 void handle_get(web::http::http_request request)
 {
+    web::http::http_response response(web::http::status_codes::OK);
+    response.headers().add(utility::conversions::to_string_t("Access-Control-Allow-Origin"), utility::conversions::to_string_t("*"));
+    response.headers().add(utility::conversions::to_string_t("Access-Control-Allow-Methods"), utility::conversions::to_string_t("GET"));
+    response.headers().add(utility::conversions::to_string_t("Access-Control-Allow-Headers"), utility::conversions::to_string_t("access-control-allow-headers,access-control-allow-methods,access-control-allow-origin"));
+
     auto path = web::http::uri::split_path(web::http::uri::decode(request.relative_uri().path()));
     std::string splitted(utility::conversions::to_utf8string(path[0]));
 
@@ -45,12 +50,13 @@ void handle_get(web::http::http_request request)
         object[utility::conversions::to_string_t("Name")] = web::json::value::string(utility::conversions::to_string_t(doc["Name"].get_utf8().value.to_string()));
         object[utility::conversions::to_string_t("Value")] = web::json::value::number(std::stod(doc["Value"].get_utf8().value.to_string()));
         object[utility::conversions::to_string_t("Timestamp")] = web::json::value::number((doc["Timestamp"].get_date().value.count()));
-            
+
         values.push_back(object);
     }
     answer[utility::conversions::to_string_t("response")] = web::json::value::array(values);
 
-    request.reply(web::http::status_codes::OK, answer);
+    response.set_body(answer);
+    request.reply(response);
 }
 
 int main()
