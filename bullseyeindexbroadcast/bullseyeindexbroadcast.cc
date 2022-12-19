@@ -23,13 +23,15 @@ using bsoncxx::builder::stream::open_array;
 using bsoncxx::builder::stream::open_document;
 
 mongocxx::instance instance{};
-mongocxx::client client{ mongocxx::uri{} };
-mongocxx::database db = client["Index"];
-mongocxx::collection coll = db["Index_Values"];
-mongocxx::collection hist_coll = db["Index_Hist"];
+
 
 void handle_get(web::http::http_request request)
 {
+    mongocxx::client client{ mongocxx::uri{} };
+    mongocxx::database db = client["Index"];
+    mongocxx::collection coll = db["Index_Values"];
+    mongocxx::collection hist_coll = db["Index_Hist"];
+
     web::http::http_response response(web::http::status_codes::OK);
     response.headers().add(utility::conversions::to_string_t("Access-Control-Allow-Origin"), utility::conversions::to_string_t("*"));
     response.headers().add(utility::conversions::to_string_t("Access-Control-Allow-Methods"), utility::conversions::to_string_t("GET"));
