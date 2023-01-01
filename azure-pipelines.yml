@@ -11,13 +11,29 @@ trigger:
 pool:
   name: Default
 
-stages:
-- stage: Build
-  jobs:
-  - job: CMakeFiles
-    steps:
-    - task: CMake@1
-      inputs:
-        workingDirectory: './bullseyeindexbroadcast'
-        cmakeArgs: '-G Ninja -B ./build -S . -DCMAKE_TOOLCHAIN_FILE=/home/gufranyes/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++'
+steps:
+  - task: SonarQubePrepare@5
+    inputs:
+      SonarQube: 'BullseyeSonar'
+      scannerMode: 'CLI'
+      configMode: 'manual'
+      cliProjectKey: 'Bullseye_Bullseye_AYVvpXuDyCd4oEldsjIr'
+      cliProjectName: 'Bullseye'
+      cliSources: '.'
+  - task: CMake@1
+    inputs:
+      workingDirectory: './bullseyeindexbroadcast'
+      cmakeArgs: '-G Ninja -B ./build -S . -DCMAKE_TOOLCHAIN_FILE=/home/gufranyes/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++'
 
+  - task: Bash@3
+    displayName: Bash Script
+    inputs:
+      targetType: inline
+      script: |
+        cd build/
+        /home/gufranyes/build-wrapper/build-wrapper-linux-x86/build-wrapper-linux-x86-64 --out-dir bw_output ninja
+
+  - task: SonarQubeAnalyze@5
+  - task: SonarQubePublish@5
+    inputs:
+      pollingTimeoutSec: '300'
