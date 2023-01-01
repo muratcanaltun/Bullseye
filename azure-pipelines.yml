@@ -30,7 +30,7 @@ steps:
     inputs:
       targetType: inline
       script: |
-        cd build/
+        cd ${Build.Repository.LocalPath}/bullseyeindexbroadcast/build
         /home/gufranyes/build-wrapper/build-wrapper-linux-x86/build-wrapper-linux-x86-64 --out-dir bw_output ninja
 
   - task: SonarQubeAnalyze@5
