@@ -1,0 +1,22 @@
+# Pipeline for bullseyeindexbroadcast by Gufran Yeşilyurt
+
+trigger:
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - 'bullseyeindexbroadcast/'
+
+pool:
+  name: Default
+
+stages:
+- stage: Build
+  jobs:
+  - job: CMakeFiles
+    steps:
+    - task: CMake@1
+      inputs:
+        cmakeArgs: '-G Ninja -B ./build -S . -DCMAKE_TOOLCHAIN_FILE=/home/gufranyes/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++'
+
