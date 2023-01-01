@@ -34,7 +34,8 @@ using bullseyeindexservice::IndexRequest;
 using bullseyeindexservice::IndexCalc;
 
 mongocxx::instance instance{};
-mongocxx::client client{ mongocxx::uri{} };
+mongocxx::uri uri("mongodb://localhost:27017");
+mongocxx::client client(uri);
 mongocxx::database db = client["Index"];
 mongocxx::collection coll = db["Index_Values"];
 

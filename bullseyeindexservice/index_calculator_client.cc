@@ -3,6 +3,7 @@
 #include <csignal>
 #include <vector>
 #include <algorithm>
+#include <thread>
 
 #include <grpcpp/grpcpp.h>
 #include "bullseyeindexservice.grpc.pb.h"
@@ -35,7 +36,8 @@ volatile std::sig_atomic_t sig_stop;
 std::string calculating_index;
 
 mongocxx::instance instance{};
-mongocxx::client client{ mongocxx::uri{} };
+mongocxx::uri uri("mongodb://localhost:27017");
+mongocxx::client client(uri);
 mongocxx::database db = client["Index"];
 mongocxx::collection coll = db["Index_Values"];
 mongocxx::collection hist_coll = db["Index_Hist"];
