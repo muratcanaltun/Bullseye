@@ -14,6 +14,12 @@ pool:
 stages:
   - stage: Test
     jobs:
+    - job: CMakeConfiguration
+      steps:
+        - task: CMake@1
+          inputs:
+            workingDirectory: './bullseyeindexbroadcast'
+            cmakeArgs: '-G Ninja -B ./build -S . -DCMAKE_TOOLCHAIN_FILE=/home/gufranyes/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON'
     - job: Clangtidy
       steps:
         - task: Bash@3
@@ -33,13 +39,7 @@ stages:
   
   - stage: Build
     dependsOn: Test
-    jobs:
-    - job: CMakeConfiguration
-      steps:
-        - task: CMake@1
-          inputs:
-            workingDirectory: './bullseyeindexbroadcast'
-            cmakeArgs: '-G Ninja -B ./build -S . -DCMAKE_TOOLCHAIN_FILE=/home/gufranyes/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON' 
+    jobs: 
     - job: NinjaBuild
       steps:
         - task: Bash@3
