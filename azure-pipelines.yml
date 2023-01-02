@@ -20,9 +20,20 @@ stages:
           inputs:
             workingDirectory: './bullseyeindexbroadcast'
             cmakeArgs: '-G Ninja -B ./build -S . -DCMAKE_TOOLCHAIN_FILE=/home/gufranyes/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON'
+        - task: PublishPipelineArtifact@1
+          inputs:
+            targetPath: '$(Build.SourcesDirectory)/bullseyeindexbroadcast/build/'
+            artifactType: 'pipeline'
+            artifactName: 'drop'
     - job: Clangtidy
       dependsOn: CMakeConfiguration
       steps:
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            buildType: 'current'
+            artifactName: 'drop'
+            itemPattern: 'compile_commands.json'
+            targetPath: '$(Build.SourcesDirectory)/bullseyeindexbroadcast/build/'
         - task: Bash@3
           inputs:
             targetType: 'inline'
@@ -33,6 +44,12 @@ stages:
     jobs:
     - job: PublishResults
       steps:
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            buildType: 'current'
+            artifactName: 'drop'
+            itemPattern: 'compile_commands.json'
+            targetPath: '$(Build.SourcesDirectory)/bullseyeindexbroadcast/build/'
         - task: PublishTestResults@2
           inputs:
             testResultsFiles: '$(Build.SourcesDirectory)/bullseyeindexbroadcast/build/compile_commands.json'
