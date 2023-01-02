@@ -21,6 +21,7 @@ stages:
             workingDirectory: './bullseyeindexbroadcast'
             cmakeArgs: '-G Ninja -B ./build -S . -DCMAKE_TOOLCHAIN_FILE=/home/gufranyes/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON'
     - job: Clangtidy
+      condition: succeeded('CMakeConfiguration') 
       steps:
         - task: Bash@3
           inputs:
@@ -38,7 +39,7 @@ stages:
       displayName: 'Publish clang-tidy report'
   
   - stage: Build
-    dependsOn: Test
+    condition: succeeded('Test')
     jobs: 
     - job: NinjaBuild
       steps:
