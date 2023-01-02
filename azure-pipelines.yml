@@ -12,14 +12,6 @@ pool:
   name: Default
 
 steps:
-  - task: SonarQubePrepare@5
-    inputs:
-      SonarQube: 'BullseyeSonar'
-      scannerMode: 'CLI'
-      configMode: 'manual'
-      cliProjectKey: 'Bullseye_Bullseye_AYVvpXuDyCd4oEldsjIr'
-      cliProjectName: 'Bullseye'
-      cliSources: '.'
   - task: CMake@1
     inputs:
       workingDirectory: './bullseyeindexbroadcast'
@@ -28,12 +20,22 @@ steps:
   - task: Bash@3
     displayName: Bash Script
     inputs:
+      workingDirectory: './bullseyeindexbroadcast'
       targetType: inline
       script: |
-        cd $(Build.SourcesDirectory)/bullseyeindexbroadcast/build
-        /home/gufranyes/build-wrapper/build-wrapper-linux-x86/build-wrapper-linux-x86-64 --out-dir bw_output ninja
-
-  - task: SonarQubeAnalyze@5
-  - task: SonarQubePublish@5
+        cd ./build
+        ninja
+  # Run clang-tidy
+  - task: Bash@3
     inputs:
-      pollingTimeoutSec: '300'
+      workingDirectory: './bullseyeindexbroadcast'
+      targetType: 'inline'
+      script: |
+        clang-tidy -p ./build -- -std=c++17 ./*.cc
+    displayName: 'Run clang-tidy'
+
+  # Publish clang-tidy report as a test run
+  - task: PublishTestResults@2
+    inputs:
+      testResultsFiles: '$(Build.SourcesDirectory)/bullseyeindexbroadcast/build/compile_commands.json'
+    displayName: 'Publish clang-tidy report'
