@@ -21,7 +21,7 @@ stages:
             workingDirectory: './bullseyeindexbroadcast'
             cmakeArgs: '-G Ninja -B ./build -S . -DCMAKE_TOOLCHAIN_FILE=/home/gufranyes/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON'
     - job: Clangtidy
-      condition: succeeded('CMakeConfiguration') 
+      dependsOn: CMakeConfiguration
       steps:
         - task: Bash@3
           inputs:
@@ -45,8 +45,7 @@ stages:
       steps:
         - task: Bash@3
           inputs:
-            workingDirectory: './bullseyeindexbroadcast'
             targetType: inline
             script: |
-              cd ./build
+              cd $(Build.SourcesDirectory)/bullseyeindexbroadcast/build
               ninja    
