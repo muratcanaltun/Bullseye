@@ -27,7 +27,7 @@ stages:
           inputs:
             targetType: 'inline'
             script: |
-              clang-tidy -p $(Build.SourcesDirectory)/bullseyeindexbroadcast/build -extra-arg-before=-std=c++17 $(Build.SourcesDirectory)/bullseyeindexbroadcast/bullseyeindexbroadcast.cc
+              clang-tidy -p $(Build.SourcesDirectory)/bullseyeindexbroadcast/build/compile_commands.json -extra-arg-before=-std=c++17 $(Build.SourcesDirectory)/bullseyeindexbroadcast/bullseyeindexbroadcast.cc
   - stage: LogFailedTest
     condition: failed()
     jobs:
