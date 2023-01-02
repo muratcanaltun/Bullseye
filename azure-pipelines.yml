@@ -22,7 +22,7 @@ stages:
             cmakeArgs: '-G Ninja -B ./build -S . -DCMAKE_TOOLCHAIN_FILE=/home/gufranyes/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON'
         - task: PublishPipelineArtifact@1
           inputs:
-            targetPath: '$(Build.SourcesDirectory)/bullseyeindexbroadcast/build/*'
+            targetPath: '$(Build.SourcesDirectory)/bullseyeindexbroadcast/build/'
             artifactType: 'pipeline'
             artifactName: 'drop'
     - job: Clangtidy
