@@ -28,10 +28,9 @@ steps:
   # Run clang-tidy
   - task: Bash@3
     inputs:
-      workingDirectory: './bullseyeindexbroadcast'
       targetType: 'inline'
       script: |
-        clang-tidy -p ./build -- -std=c++17 ./*.cc
+        clang-tidy -p $(Build.SourcesDirectory)/bullseyeindexbroadcast/build -- -std=c++17 $(Build.SourcesDirectory)/bullseyeindexbroadcast/*.cc
     displayName: 'Run clang-tidy'
 
   # Publish clang-tidy report as a test run
