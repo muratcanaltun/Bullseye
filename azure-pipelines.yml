@@ -15,10 +15,10 @@ steps:
   - task: CMake@1
     inputs:
       workingDirectory: './bullseyeindexbroadcast'
-      cmakeArgs: '-G Ninja -B ./build -S . -DCMAKE_TOOLCHAIN_FILE=/home/gufranyes/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++'
+      cmakeArgs: '-G Ninja -B ./build -S . -DCMAKE_TOOLCHAIN_FILE=/home/gufranyes/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON' 
 
   - task: Bash@3
-    displayName: Bash Script
+    displayName: 'Ninja Build'
     inputs:
       workingDirectory: './bullseyeindexbroadcast'
       targetType: inline
@@ -30,7 +30,7 @@ steps:
     inputs:
       targetType: 'inline'
       script: |
-        clang-tidy -p $(Build.SourcesDirectory)/bullseyeindexbroadcast/build -- -std=c++17 $(Build.SourcesDirectory)/bullseyeindexbroadcast/bullseyeindexbroadcast.cc
+        clang-tidy -p $(Build.SourcesDirectory)/bullseyeindexbroadcast/build -extra-arg-before=-std=c++17 $(Build.SourcesDirectory)/bullseyeindexbroadcast/bullseyeindexbroadcast.cc
     displayName: 'Run clang-tidy'
 
   # Publish clang-tidy report as a test run
