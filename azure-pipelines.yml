@@ -6,35 +6,46 @@ trigger:
     - master
   paths:
     include:
-    - 'bullseyeindexbroadcast/'
+    - 'bullseyeindexbroadcast'
 
 pool:
   name: Default
 
-steps:
-  - task: CMake@1
-    inputs:
-      workingDirectory: './bullseyeindexbroadcast'
-      cmakeArgs: '-G Ninja -B ./build -S . -DCMAKE_TOOLCHAIN_FILE=/home/gufranyes/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON' 
-
-  - task: Bash@3
-    displayName: 'Ninja Build'
-    inputs:
-      workingDirectory: './bullseyeindexbroadcast'
-      targetType: inline
-      script: |
-        cd ./build
-        ninja
-  # Run clang-tidy
-  - task: Bash@3
-    inputs:
-      targetType: 'inline'
-      script: |
-        clang-tidy -p $(Build.SourcesDirectory)/bullseyeindexbroadcast/build -extra-arg-before=-std=c++17 $(Build.SourcesDirectory)/bullseyeindexbroadcast/bullseyeindexbroadcast.cc
-    displayName: 'Run clang-tidy'
-
-  # Publish clang-tidy report as a test run
-  - task: PublishTestResults@2
-    inputs:
-      testResultsFiles: '$(Build.SourcesDirectory)/bullseyeindexbroadcast/build/compile_commands.json'
-    displayName: 'Publish clang-tidy report'
+stages:
+  - stage: Test
+    jobs:
+    - job: Clang-tidy
+      steps:
+        - task: Bash@3
+          inputs:
+            targetType: 'inline'
+            script: |
+              clang-tidy -p $(Build.SourcesDirectory)/bullseyeindexbroadcast/build -extra-arg-before=-std=c++17 $(Build.SourcesDirectory)/bullseyeindexbroadcast/bullseyeindexbroadcast.cc
+  - stage: Log Failed Test
+    condition: failed()
+    jobs:
+    - job: PublishResults
+      steps:
+        - task: PublishTestResults@2
+          inputs:
+            testResultsFiles: '$(Build.SourcesDirectory)/bullseyeindexbroadcast/build/compile_commands.json'
+      displayName: 'Publish clang-tidy report'
+  
+  - stage: Build
+    dependsOn: Test
+    jobs:
+    - job: CMakeConfiguration
+      steps:
+        - task: CMake@1
+          inputs:
+            workingDirectory: './bullseyeindexbroadcast'
+            cmakeArgs: '-G Ninja -B ./build -S . -DCMAKE_TOOLCHAIN_FILE=/home/gufranyes/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON' 
+    - job: NinjaBuild
+      steps:
+        - task: Bash@3
+          inputs:
+            workingDirectory: './bullseyeindexbroadcast'
+            targetType: inline
+            script: |
+              cd ./build
+              ninja    
