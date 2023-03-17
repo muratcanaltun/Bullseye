@@ -1,0 +1,38 @@
+syntax = "proto3";
+
+package bullseyestockexternal;
+
+service StockInterface {
+    rpc signUp(SignUpRequest) returns (SignUpReply) {}
+    rpc signIn(SignInRequest) returns (SignInReply) {}
+    rpc sendOrder(SendOrderRequest) returns (SendOrderReply) {}
+}
+
+message SignUpRequest {
+    string user_name = 1;
+    string password = 2;
+}
+
+message SignUpReply {
+    string reply = 1;
+}
+
+message SignInRequest {
+    string user_name = 1;
+    string password = 2;
+}
+
+message SignInReply {
+    string reply = 1;
+}
+
+message SendOrderRequest {
+    string user_name = 1;
+    string stock_id = 2;
+    double stock_price = 3;
+    int32 order_type = 4;
+}
+
+message SendOrderReply {
+    string reply = 1;
+}
