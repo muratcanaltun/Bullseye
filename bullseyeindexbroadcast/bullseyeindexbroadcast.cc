@@ -27,7 +27,8 @@ mongocxx::instance instance{};
 
 void handle_get(web::http::http_request request)
 {
-    mongocxx::client client{ mongocxx::uri{} };
+    mongocxx::uri uri("mongodb://localhost:27017");
+    mongocxx::client client(uri);
     mongocxx::database db = client["Index"];
     mongocxx::collection coll = db["Index_Values"];
     mongocxx::collection hist_coll = db["Index_Hist"];
@@ -63,7 +64,7 @@ void handle_get(web::http::http_request request)
 
 int main()
 {
-    web::http::experimental::listener::http_listener listener(L"http://localhost:8080/Indices/");
+    web::http::experimental::listener::http_listener listener(utility::conversions::to_string_t("http://localhost:9990/Indices/"));
 
     listener.support(web::http::methods::GET, handle_get);
 

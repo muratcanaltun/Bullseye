@@ -1,0 +1,73 @@
+# Pipeline for bullseyeindexbroadcast by Gufran Yeşilyurt
+
+trigger:
+  branches:
+    include:
+    - master
+  paths:
+    include:
+    - 'bullseyeindexbroadcast/'
+
+pool:
+  name: Default
+
+stages:
+  - stage: Test
+    jobs:
+    - job: CMakeConfiguration
+      steps:
+        - task: CMake@1
+          inputs:
+            workingDirectory: './bullseyeindexbroadcast'
+            cmakeArgs: '-G Ninja -B ./build -S . -DCMAKE_TOOLCHAIN_FILE=/home/gufranyes/vcpkg/scripts/buildsystems/vcpkg.cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_EXPORT_COMPILE_COMMANDS=ON'
+        - task: PublishPipelineArtifact@1
+          inputs:
+            targetPath: '$(Build.SourcesDirectory)/bullseyeindexbroadcast/build/'
+            artifactType: 'pipeline'
+            artifactName: 'drop'
+    - job: Clangtidy
+      dependsOn: CMakeConfiguration
+      steps:
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            buildType: 'current'
+            artifactName: 'drop'
+            itemPattern: 'compile_commands.json'
+            targetPath: '$(Build.SourcesDirectory)/bullseyeindexbroadcast/build/'
+        - task: Bash@3
+          inputs:
+            targetType: 'inline'
+            script: |
+              clang-tidy -p $(Build.SourcesDirectory)/bullseyeindexbroadcast/build/compile_commands.json -extra-arg-before=-std=c++17 $(Build.SourcesDirectory)/bullseyeindexbroadcast/bullseyeindexbroadcast.cc
+  - stage: LogFailedTest
+    condition: failed()
+    jobs:
+    - job: PublishResults
+      steps:
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            buildType: 'current'
+            artifactName: 'drop'
+            itemPattern: 'compile_commands.json'
+            targetPath: '$(Build.SourcesDirectory)/bullseyeindexbroadcast/build/'
+        - task: PublishTestResults@2
+          inputs:
+            testResultsFiles: '$(Build.SourcesDirectory)/bullseyeindexbroadcast/build/compile_commands.json'
+      displayName: 'Publish clang-tidy report'
+  
+  - stage: Build
+    condition: succeeded('Test')
+    jobs: 
+    - job: NinjaBuild
+      steps:
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            buildType: 'current'
+            artifactName: 'drop'
+            targetPath: '$(Build.SourcesDirectory)/bullseyeindexbroadcast/build/'
+        - task: Bash@3
+          inputs:
+            targetType: inline
+            script: |
+              cd $(Build.SourcesDirectory)/bullseyeindexbroadcast/build
+              ninja    
