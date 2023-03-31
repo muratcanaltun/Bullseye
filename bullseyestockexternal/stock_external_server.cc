@@ -93,7 +93,8 @@ class StockInterfaceServiceImplementation final : public StockInterface::Service
 		bsoncxx::document::value doc_value = builder << "username" << request->user_name()
 			<< "stock_id" << request->stock_id() 
 			<< "stock_price" << request->stock_price()
-			<< "order_type" << request->order_type() << finalize;
+			<< "order_type" << request->order_type() 
+			<< "order_size" << request->order_size() << finalize;
 
 		orders.insert_one(doc_value.view());
 

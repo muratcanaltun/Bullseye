@@ -61,6 +61,7 @@ public:
 	std::string stock_id;
 	double stock_price;
 	int order_type;
+	int order_size;
 };
 
 class StockInterfaceClient {
@@ -124,6 +125,7 @@ public:
 		request.set_stock_id(order_data.stock_id);
 		request.set_stock_price(order_data.stock_price);
 		request.set_order_type(order_data.order_type);
+		request.set_order_size(order_data.order_size);
 
 		Status status = stub_->sendOrder(&context, request, &reply);
 
@@ -194,6 +196,9 @@ void RunClient()
 
 			std::cout << "Please enter the price you want for it:" << std::endl;
 			std::cin >> order_data.stock_price;
+
+			std::cout << "Please enter the amount of shares you want to trade:" << std::endl;
+			std::cin >> order_data.order_size;
 
 			std::cout << "Please choose an option:\n1. Buy\n2. Sell" << std::endl;
 			std::cin >> order_data.order_type;
