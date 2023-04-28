@@ -129,7 +129,7 @@ void RunClient()
 					std::cout << "Working on order id " << doc["_id"].get_oid().value.to_string() << std::endl;
 
 					if (doc["order_size"].get_int32().value <= 0) {
-						ordersdb.delete_one(make_document(kvp("_id", doc["_id"].get_oid().value.to_string())));
+						ordersdb.find_one_and_delete(make_document(kvp("_id", doc["_id"].get_oid().value)));
 					}
 					else {
 						ordersdb.update_one(document{} << "_id" << bsoncxx::oid(doc["_id"].get_oid().value.to_string()) << finalize,
