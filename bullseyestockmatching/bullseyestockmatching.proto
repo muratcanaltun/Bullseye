@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package bullseyestockmatching;
+
+service StockMatching {
+    rpc matchStocks (matchRequest) returns (matchReply) {}
+}
+
+message matchRequest {
+    string error = 1;
+}
+
+message matchReply {
+    double error = 1;
+}
