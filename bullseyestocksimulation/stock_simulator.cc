@@ -32,6 +32,7 @@ mongocxx::uri uri("mongodb://localhost:27017");
 mongocxx::client client(uri);
 mongocxx::database db = client["Stock"];
 mongocxx::collection stocks_coll = db["Stocks"];
+mongocxx::collection hist_coll = db["Stock_Hist"];
 
 namespace
 {
@@ -76,8 +77,10 @@ int main()
 		std::cout << "generated rand" << std::endl;
 
 		double price = stock_view["stock_price"].get_double().value + random;
+		bsoncxx::types::b_date timestamp(std::chrono::system_clock::now());
 
 		stocks_coll.update_one(document{} << "stock_symbol" << stock_symbol << finalize, document{} << "$set" << open_document << "stock_price" << price << close_document << finalize);
+		hist_coll.insert_one(document{} << "stock_symbol" << stock_symbol << "stock_price" << price << "timestamp" << timestamp << finalize);
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	}
