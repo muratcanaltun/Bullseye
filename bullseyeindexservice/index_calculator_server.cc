@@ -64,17 +64,15 @@ class IndexCalcServiceImplementation final : public IndexCalc::Service
 			std::string stock_name;
 			iss >> stock_name;
 
-			if (stock_name.empty()) {
-				break;
-			}
-
 			stocks[stock_name] = std::make_pair(0,0);
 
 		} while (iss);
 
 		for (auto doc : cursor_stocks) {
-			stocks[doc["stock_symbol"].get_utf8().value.to_string()].first = doc["stock_price"].get_double();
-			stocks[doc["stock_symbol"].get_utf8().value.to_string()].second = doc["stock_volume"].get_int32().value;
+			if (stocks.count(doc["stock_symbol"].get_utf8().value.to_string())) {
+				stocks[doc["stock_symbol"].get_utf8().value.to_string()].first = doc["stock_price"].get_double();
+				stocks[doc["stock_symbol"].get_utf8().value.to_string()].second = doc["stock_volume"].get_int32().value;
+			}
 		}
 
 
