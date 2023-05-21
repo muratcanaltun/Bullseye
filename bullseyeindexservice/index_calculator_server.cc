@@ -46,6 +46,8 @@ class IndexCalcServiceImplementation final : public IndexCalc::Service
 
 	Status sendRequest(ServerContext* context, const IndexRequest* request, IndexReply* reply) override
 	{
+		auto cursor_stocks = stock_coll.find({});
+
 		std::string index_name = request->index_id();
 		std::map<std::string, std::pair<double, int>> stocks;
 
@@ -66,13 +68,16 @@ class IndexCalcServiceImplementation final : public IndexCalc::Service
 				break;
 			}
 
-			bsoncxx::stdx::optional<bsoncxx::document::value> stock = stock_coll.find_one(make_document(kvp("stock_symbol", stock_name)));
-			
-			auto stock_view = stock->view();
-
-			stocks[stock_name] = std::make_pair(stock_view["stock_price"].get_double(), stock_view["stock_volume"].get_int32().value);
+			stocks[stock_name] = std::make_pair(0,0);
 
 		} while (iss);
+
+		for (auto doc : cursor_stocks) {
+			stocks[doc["stock_symbol"].get_utf8().value.to_string()].first = doc["stock_price"].get_double();
+			stocks[doc["stock_symbol"].get_utf8().value.to_string()].second = doc["stock_volume"].get_int32().value;
+		}
+
+
 
 		std::chrono::high_resolution_clock::time_point t2 = std::chrono::high_resolution_clock::now();
 		std::chrono::duration<double, std::milli> time_spent = t2 - t1;
