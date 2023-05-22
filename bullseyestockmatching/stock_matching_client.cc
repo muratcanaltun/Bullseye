@@ -18,7 +18,7 @@
 #include <bsoncxx/builder/stream/document.hpp>
 #include <bsoncxx/builder/stream/array.hpp>
 
-#define STOCKS_SIZE 14
+#define STOCKS_SIZE 30
 
 using grpc::Channel;
 using grpc::ClientContext;
@@ -50,9 +50,11 @@ namespace
 }
 
 std::string stocks[] = {
-		"AA", "BB", "CC", "D", "EF",
-		"F", "G", "HIJK", "LL", "MM",
-		"NO", "PQRS", "UVW", "XYZ"
+		"AA","BB","CC","D","EF","F","G",
+		"HIJK","LL","MM","NO","PQRS","UVW",
+		"XYZ","XDDD","TSK","IBB","UNK","USD",
+		"UST","FRA","PGO","PDF","FB","CL",
+		"BTEC","CIVC","REEN","WSTD","IRO"
 };
 
 class Order_Data {
@@ -105,19 +107,27 @@ void RunClient()
 	std::string response;
 	StockMatchingClient client(grpc::CreateChannel(target_address, grpc::InsecureChannelCredentials()));
 
-	int buy_sizes[STOCKS_SIZE];
+	std::map<std::pair<std::string, double>, int> buy_sizes_map;
+
+	//int buy_sizes[STOCKS_SIZE];
 
 	for (int i = 0; i < STOCKS_SIZE; i++) {
 		auto buy_orders = ordersdb.find(make_document(kvp("stock_id", stocks[i]), kvp("order_type", 1)));
-		int buy_size = 0;
 
 		for (auto doc : buy_orders) {
 			if (!doc.empty()) {
-				buy_size += doc["order_size"].get_int32().value;
+				if (!buy_sizes_map.count(std::make_pair(doc["stock_id"].get_utf8().value.to_string(), doc["stock_price"].get_double().value))) {
+					buy_sizes_map[std::make_pair(doc["stock_id"].get_utf8().value.to_string(), doc["stock_price"].get_double().value)] = doc["order_size"].get_int32().value;
+				}
+				else {
+					buy_sizes_map[std::make_pair(doc["stock_id"].get_utf8().value.to_string(), doc["stock_price"].get_double().value)] += doc["order_size"].get_int32().value;
+				}
 			}
 		}
+	}
 
-		buy_sizes[i] = buy_size;
+	for (auto p : buy_sizes_map) {
+		std::cout << p.first.first << ": " << p.second << std::endl;
 	}
 
 	for (int i = 0; i < STOCKS_SIZE; i++) {
@@ -134,7 +144,8 @@ void RunClient()
 					else {
 						ordersdb.update_one(document{} << "_id" << bsoncxx::oid(doc["_id"].get_oid().value.to_string()) << finalize,
 							document{} << "$set" << open_document
-							<< "percentage" << (double)doc["order_size"].get_int32().value / buy_sizes[i]
+							<< "percentage" << (double)doc["order_size"].get_int32().value / 
+							buy_sizes_map[std::make_pair(doc["stock_id"].get_utf8().value.to_string(), doc["stock_price"].get_double().value)]
 							<< close_document << finalize);
 					}
 				}

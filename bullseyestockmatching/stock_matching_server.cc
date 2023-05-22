@@ -18,7 +18,7 @@
 #include <bsoncxx/builder/stream/document.hpp>
 #include <bsoncxx/builder/stream/array.hpp>
 
-#define STOCKS_SIZE 14
+#define STOCKS_SIZE 30
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -44,6 +44,7 @@ mongocxx::client client(uri);
 mongocxx::database db = client["Stock"];
 mongocxx::collection ordersdb = db["Orders"];
 mongocxx::collection stocksdb = db["Stocks"];
+mongocxx::collection stocks_histdb = db["Stocks_Hist"];
 
 namespace
 {
@@ -51,9 +52,11 @@ namespace
 }
 
 std::string stocks[] = {
-		"AA", "BB", "CC", "D", "EF",
-		"F", "G", "HIJK", "LL", "MM",
-		"NO", "PQRS", "UVW", "XYZ"
+		"AA","BB","CC","D","EF","F","G",
+		"HIJK","LL","MM","NO","PQRS","UVW",
+		"XYZ","XDDD","TSK","IBB","UNK","USD",
+		"UST","FRA","PGO","PDF","FB","CL",
+		"BTEC","CIVC","REEN","WSTD","IRO"
 };
 
 class Order_Data {
@@ -83,6 +86,8 @@ class StockMatchingServiceImplementation final : public StockMatching::Service
 				for (auto doc : buy_orders) {
 					if (!doc.empty()) {
 						int change = doc["percentage"].get_double().value * sell_order["order_size"].get_int32().value;
+						double price = doc["stock_price"].get_double().value;
+						std::string stock_symbol = doc["stock_id"].get_utf8().value.to_string();
 
 						ordersdb.update_one(document{} << "_id" << bsoncxx::oid(doc["_id"].get_oid().value.to_string()) << finalize,
 							document{} << "$set" << open_document
@@ -92,9 +97,12 @@ class StockMatchingServiceImplementation final : public StockMatching::Service
 							document{} << "$set" << open_document
 							<< "order_size" << sell_order["order_size"].get_int32().value - change
 							<< close_document << finalize);
-						stocksdb.update_one(document{} << "stock_symbol" << doc["stock_id"].get_utf8().value.to_string() << finalize,
+						stocksdb.update_one(document{} << "stock_symbol" << stock_symbol << finalize,
 							document{} << "$set" << open_document
-							<< "stock_price" << doc["stock_price"].get_double().value << close_document << finalize);
+							<< "stock_price" << price << close_document << finalize);
+
+						bsoncxx::types::b_date timestamp(std::chrono::system_clock::now());
+						stocks_histdb.insert_one(document{} << "stock_symbol" << stock_symbol << "stock_price" << price << "timestamp" << timestamp << finalize);
 					}
 				}
 			}
