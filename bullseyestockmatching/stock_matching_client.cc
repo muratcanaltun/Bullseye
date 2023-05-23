@@ -124,10 +124,6 @@ void RunClient()
 		}
 	}
 
-	for (auto p : buy_sizes_map) {
-		std::cout << p.first.first << ": " << p.second << std::endl;
-	}
-
 	for (int i = 0; i < STOCKS_SIZE; i++) {
 		auto buy_orders = ordersdb.find(make_document(kvp("stock_id", stocks[i]), kvp("order_type", 1)));
 
