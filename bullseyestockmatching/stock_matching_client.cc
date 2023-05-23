@@ -109,8 +109,6 @@ void RunClient()
 
 	std::map<std::pair<std::string, double>, int> buy_sizes_map;
 
-	//int buy_sizes[STOCKS_SIZE];
-
 	for (int i = 0; i < STOCKS_SIZE; i++) {
 		auto buy_orders = ordersdb.find(make_document(kvp("stock_id", stocks[i]), kvp("order_type", 1)));
 
@@ -163,8 +161,6 @@ void RunClient()
 
 	// print results
 	std::cout << "Matched stocks in " << time_spent.count() << " ms." << std::endl << std::endl;
-
-	bsoncxx::types::b_date timestamp(std::chrono::system_clock::now());
 }
 
 int main()
