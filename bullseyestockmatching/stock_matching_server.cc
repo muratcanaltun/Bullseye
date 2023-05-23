@@ -44,7 +44,7 @@ mongocxx::client client(uri);
 mongocxx::database db = client["Stock"];
 mongocxx::collection ordersdb = db["Orders"];
 mongocxx::collection stocksdb = db["Stocks"];
-mongocxx::collection stocks_histdb = db["Stocks_Hist"];
+mongocxx::collection stocks_histdb = db["Stock_Hist"];
 
 namespace
 {
