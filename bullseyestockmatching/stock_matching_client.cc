@@ -54,7 +54,18 @@ std::string stocks[] = {
 		"HIJK","LL","MM","NO","PQRS","UVW",
 		"XYZ","XDDD","TSK","IBB","UNK","USD",
 		"UST","FRA","PGO","PDF","FB","CL",
-		"BTEC","CIVC","REEN","WSTD","IRO"
+		"BTEC","CIVC","REEN","WSTD","IRO",
+		"WW","HE","OSP","FINE","GW","ISTT",
+		"LSC","AS","FS","WPMC","KH","VM",
+		"SP","SV","DPC","ROS","GG","TDY",
+		"YB","NM","FAST","PF","HH","AAAA",
+		"CF","TS","LIMT","PANTS","SSF","PRST",
+		"HP","SLLC","TRAS","DS","BBC","WE",
+		"IYI","SB","HIBR","QV","BBL","MC","BWP",
+		"HG","RR","SWA","SWAC","DC","SON","SUN",
+		"WENT","DIET","NIC","OO","TUCO","TACO",
+		"BA","STR","TEA","CG","UT","CV","THY",
+		"TUR","TT","CORP","DMA","WPN","KREW","HAP"
 };
 
 class Order_Data {
